@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Photo Clusters</title>
+</head>
+<body>
+    <h1>Grouped Photos by Background Similarity</h1>
+    {% for cluster_id, paths in clusters.items() %}
+        <h2>{{ cluster_id }}</h2>
+        {% for path in paths %}
+            <img src="{{ url_for('static', filename=path.split('static/')[-1]) }}" width="200">
+        {% endfor %}
+        <hr>
+    {% endfor %}
+    <br><a href="/">Back to Home</a>
+</body>
+</html>

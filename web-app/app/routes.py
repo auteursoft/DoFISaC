@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, send_from_directory
 import face_recognition
 import pickle
 import os
 from werkzeug.utils import secure_filename
+from pathlib import Path
+import shutil
 
 main = Blueprint('main', __name__)
 
@@ -38,3 +40,14 @@ def search():
                 matches.add(entry["path"])
 
     return render_template('results.html', matches=matches, uploaded=upload_path)
+
+@main.route('/clusters')
+def clusters():
+    base_path = Path("clusters")
+    clusters = {}
+
+    for cluster_dir in sorted(base_path.glob("cluster_*")):
+        cluster_id = cluster_dir.name
+        clusters[cluster_id] = [str(p) for p in cluster_dir.glob("*.*")]
+
+    return render_template('clusters.html', clusters=clusters)
