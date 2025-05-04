@@ -23,3 +23,16 @@ Utility for searching by face on OSX (And possibly other OS's)
     -v $(pwd):/app \
     facial-search
 ```
+
+## Desktop App (Still working on it)
+1. Ensure you have Python 3.11 installed.
+2. From Terminal, run:
+```bash
+   chmod +x run_search.command
+   ./run_search.command
+```
+
+This will open a file dialog to choose your query image and face index (face_index.pkl).
+
+To turn this into a native app:
+- Use Automator on macOS: create an "Application" that runs `run_search.command`.
