@@ -36,3 +36,11 @@ This will open a file dialog to choose your query image and face index (face_ind
 
 To turn this into a native app:
 - Use Automator on macOS: create an "Application" that runs `run_search.command`.
+
+
+## Web App (Alpha)
+1. the [`web-app](./web-app/) directory contains a way to serve everything up on a web page. 
+2. You will need to know a few things about nginx configuration to make this work on a public site. 
+3. The webapp requires that you have already run the `face-indexer.py` program and are able to find it from where you run the web app. 
+
+© Sean P. Goggins, all rights reserved, 2025

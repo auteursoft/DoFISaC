@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+</head>
+<body>
+    <h2>Uploaded Image:</h2>
+    <img src="{{ uploaded }}" width="300"><br><br>
+
+    {% if matches %}
+        <h2>Matching Faces Found:</h2>
+        {% for match in matches %}
+            <div>
+                <img src="{{ url_for('static', filename=match.split('static/')[-1]) }}" width="200">
+                <p>{{ match }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No matches found.</p>
+    {% endif %}
+    <br><a href="/">Search Again</a>
+</body>
+</html>
