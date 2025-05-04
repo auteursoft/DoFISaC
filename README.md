@@ -9,3 +9,17 @@ Utility for searching by face on OSX (And possibly other OS's)
 3. Install required libraries: 
     - Safe: `pip install opencv-python face_recognition tqdm` 
     - Precise `pip install -r requirements.txt`
+
+## Indexing: 
+1. `python face-indexer.py "/Volumes/super_54/google/sean.goggins/Google Photos"` for example. 
+
+
+## Docker Instructions: 
+1. `docker build -t facial-search .` 
+2. Run The Container: 
+```docker 
+    docker run --rm \
+    -v /Users/sean/Pictures:/data \
+    -v $(pwd):/app \
+    facial-search
+```
