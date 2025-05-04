@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Search</title>
+</head>
+<body>
+    <h1>Upload a Photo to Search Faces</h1>
+    <form method="POST" action="/search" enctype="multipart/form-data">
+        <input type="file" name="file" accept="image/*" required>
+        <input type="submit" value="Search">
+    </form>
+</body>
+</html>
