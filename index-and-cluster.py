@@ -9,6 +9,7 @@ import imagehash
 from shutil import copy2
 import cv2
 from sklearn.cluster import DBSCAN, KMeans
+from sklearn.metrics import silhouette_score
 from multiprocessing import Pool, cpu_count
 import warnings
 
@@ -93,6 +94,20 @@ def process_image(path):
 
     return result
 
+
+from sklearn.metrics import silhouette_score
+
+def guess_k(features, max_k=10):
+    scores = []
+    for k in range(2, min(max_k, len(features)) + 1):
+        kmeans = KMeans(n_clusters=k, random_state=42).fit(features)
+        score = silhouette_score(features, kmeans.labels_)
+        scores.append((k, score))
+    best_k = max(scores, key=lambda x: x[1])[0]
+    print(f"🔍 Chose k={best_k} based on silhouette score.")
+    return best_k
+
+
 def main():
     print(f"🧠 Processing {len(image_paths)} images with {cpu_count()} cores...")
     with Pool() as pool:
@@ -134,7 +149,7 @@ def main():
 
         print("🔍 Clustering by background features...")
         if len(bg_features) > 1:
-            actual_clusters = min(N_BG_CLUSTERS, len(bg_features))
+            actual_clusters = guess_k(bg_features)
             bg_labels = KMeans(n_clusters=actual_clusters, random_state=42).fit_predict(np.array(bg_features))
             for path, label in zip(bg_paths, bg_labels):
                 folder = Path(CLUSTER_BG_DIR) / f"cluster_{label}"
