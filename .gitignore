@@ -1,3 +1,7 @@
+# Pikl Files
+*.pkl
+.pkl
+
 # Dropbox garbage
 .DS_Store
 *.DS_Store
