@@ -10,7 +10,8 @@ from shutil import copy2
 import cv2
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.metrics import silhouette_score
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count, freeze_support
+from tqdm import tqdm
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, message=".*iCCP.*")
@@ -56,8 +57,6 @@ def collect_image_paths(sources, max_depth=3):
             collected.append(p)
     return collected
 
-image_paths = collect_image_paths(args.paths, MAX_DEPTH)
-
 def process_image(path):
     result = {
         "path": str(path),
@@ -94,8 +93,13 @@ def process_image(path):
 
     return result
 
-
-from sklearn.metrics import silhouette_score
+def tqdm_pool_map(pool, func, iterable):
+    results = []
+    with tqdm(total=len(iterable), desc="🔄 Processing images") as pbar:
+        for result in pool.imap_unordered(func, iterable):
+            results.append(result)
+            pbar.update()
+    return results
 
 def guess_k(features, max_k=10):
     scores = []
@@ -107,11 +111,12 @@ def guess_k(features, max_k=10):
     print(f"🔍 Chose k={best_k} based on silhouette score.")
     return best_k
 
-
 def main():
+    image_paths = collect_image_paths(args.paths, MAX_DEPTH)
     print(f"🧠 Processing {len(image_paths)} images with {cpu_count()} cores...")
+
     with Pool() as pool:
-        processed = list(pool.map(process_image, image_paths))
+        processed = tqdm_pool_map(pool, process_image, image_paths)
 
     face_db = []
     phash_vectors = []
@@ -162,4 +167,5 @@ def main():
     print("🏁 Done.")
 
 if __name__ == "__main__":
+    freeze_support()
     main()
