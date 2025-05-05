@@ -36,7 +36,7 @@ def search_faces(image_path, index, tolerance=0.6):
                 thumb = os.path.basename(entry["path"])
                 matches.append({
                     "full_path": entry["path"],
-                    "thumb_url": url_for('static', filename=f"thumbnails/{thumb}")
+                    "thumb_name": thumb
                 })
     return matches
 
