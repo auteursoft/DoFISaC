@@ -4,7 +4,7 @@ import pickle
 from PIL import Image
 
 # Settings
-IMAGE_DIR = "photos"  # folder containing your images
+IMAGE_DIR = "/Volumes/super_54/google/sean.goggins/Google Photos"  # folder containing your images
 OUTPUT_INDEX = "face_index.pkl"
 THUMBNAIL_DIR = "static/thumbnails"
 THUMBNAIL_WIDTH = 400
