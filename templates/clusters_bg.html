@@ -2,6 +2,22 @@
 {% for cluster, images in clusters.items() %}
   <h2>{{ cluster }}</h2>
   {% for img in images %}
-    <a href="{{ img }}" target="_blank"><img src="{{ img }}" style="width: 200px; margin: 5px;"></a>
+    <div style="display:inline-block; text-align:center; margin: 10px;">
+      <a href="{{ img }}" target="_blank">
+        <img src="{{ img }}" style="width: 200px;">
+      </a><br>
+      <button onclick="sendFeedback('{{ img }}', 'correct')">👍</button>
+      <button onclick="sendFeedback('{{ img }}', 'incorrect')">👎</button>
+    </div>
   {% endfor %}
 {% endfor %}
+
+<script>
+function sendFeedback(imgPath, label) {
+  fetch('/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: imgPath, label: label, context: window.location.pathname })
+  });
+}
+</script>
