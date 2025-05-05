@@ -1,23 +1,9 @@
-<h1>{{ 'Perceptual Hash' if request.path.endswith('phash') else 'Background' }} Clusters</h1>
+<h1>Phash Clusters</h1>
 {% for cluster, images in clusters.items() %}
-  <h2>{{ cluster }}</h2>
-  {% for img in images %}
-    <div style="display:inline-block; text-align:center; margin: 10px;">
-      <a href="{{ img }}" target="_blank">
-        <img src="{{ img }}" style="width: 200px;">
-      </a><br>
-      <button onclick="sendFeedback('{{ img }}', 'correct')">👍</button>
-      <button onclick="sendFeedback('{{ img }}', 'incorrect')">👎</button>
-    </div>
-  {% endfor %}
+<h2>{{ cluster }}</h2>
+{% for img in images %}
+  <img src="{{ img }}" height="100">
 {% endfor %}
-
-<script>
-function sendFeedback(imgPath, label) {
-  fetch('/feedback', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: imgPath, label: label, context: window.location.pathname })
-  });
-}
-</script>
+<hr>
+{% endfor %}
+<a href="/">Back</a>

@@ -1,0 +1,12 @@
+<h1>Search Results</h1>
+<p>Query Image: {{ query }}</p>
+{% if results %}
+<ul>
+  {% for path in results %}
+    <li><img src="{{ path }}" height="100"> {{ path }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No matches found.</p>
+{% endif %}
+<a href="/search">Try another</a>
