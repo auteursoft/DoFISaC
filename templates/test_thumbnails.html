@@ -1,0 +1,14 @@
+<h1>Thumbnail Visibility Test</h1>
+{% if images %}
+<p>Found {{ images|length }} thumbnails:</p>
+<ul>
+{% for img in images %}
+  <li>
+    <img src="{{ url_for('static', filename='thumbnails/' ~ img) }}" height="100"><br>
+    {{ img }}
+  </li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No thumbnails found in static/thumbnails/</p>
+{% endif %}
