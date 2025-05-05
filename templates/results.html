@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Matched Faces for {{ query }}</h1>
+    {% if results %}
+        {% for item in results %}
+            <div style="margin-bottom: 20px;">
+                <a href="{{ url_for('static', filename=item.full) }}" target="_blank">
+                    <img src="{{ url_for('static', filename=item.thumb) }}" style="width: 400px;">
+                </a>
+                <p>{{ item.full }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No matches found.</p>
+    {% endif %}
+    <p><a href="{{ url_for('index') }}">Search Again</a></p>
+</body>
+</html>
