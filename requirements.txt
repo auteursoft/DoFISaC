@@ -1,8 +1,14 @@
+blinker
 click
 dlib
 face-recognition
 face_recognition_models
+Flask
+itsdangerous
+Jinja2
+MarkupSafe
 numpy
 opencv-python
 pillow
 tqdm
+Werkzeug
