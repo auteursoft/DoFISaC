@@ -7,21 +7,31 @@ Utility for searching by face on OSX (And possibly other OS's)
 1. Configure python 3 virtual environment: `python3.11 -m venv .venv`
 2. Source the virtual env: `source .venv/bin/activate`
 3. Install required libraries: 
-    - Safe: `pip install opencv-python face_recognition tqdm` 
     - Precise `pip install -r requirements.txt`
+    - If you add libraries in a fork, you can recreate the `requirements.txt` file with: 
+
+    ```bash
+    pip freeze | cut -d '=' -f 1 > requirements.txt
+    ```
 
 ## Indexing: 
-1. `python face-indexer.py "/Volumes/super_54/google/sean.goggins/Google Photos"` for example. 
+1. `python index-and-cluster.py "/Volumes/super_54/google/sean.goggins/Google Photos"` for example. 
 
 
 ## Docker Instructions: 
-1. `docker build -t facial-search .` 
-2. Run The Container: 
-```docker 
-    docker run --rm \
-    -v /Users/sean/Pictures:/data \
-    -v $(pwd):/app \
-    facial-search
+1. Create a file with a list of directories to scan, like this: 
+```bash
+/data/photos_2022
+/data/photos_2023
+```
+2. `docker build -t face-indexer-multi .` 
+3. Run The Container: 
+```bash
+docker run --rm \
+  -v "$(pwd)/config:/config" \
+  -v "$(pwd)/output:/output" \
+  -v "$(pwd)/data:/data" \
+  face-indexer-multi
 ```
 
 ## Desktop App (Still working on it)
@@ -38,9 +48,8 @@ To turn this into a native app:
 - Use Automator on macOS: create an "Application" that runs `run_search.command`.
 
 ## Web App (Alpha)
-1. 🚨 The [`web-app](./web-app/) directory contains a way to serve everything up on a web page. 
-2. You will need to know a few things about nginx configuration to make this work on a public site. 
-3. The webapp requires that you have already run the `face-indexer.py` program and are able to find it from where you run the web app. 
+1. 🚨 This is now a native web app that usees Flask
+2. ... 
 
 🚨 There are different `pip install` requirements for the web app, FYI. 
 

@@ -20,10 +20,16 @@ WORKDIR /app
 
 # Copy necessary files
 COPY requirements.txt ./
-COPY face-indexer.py ./
+COPY index-and-cluster.py ./
 
 # Install Python dependencies
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Run face indexer script with a default path inside the container
-CMD ["python", "face-indexer.py", "/data"]
+# Create stripped package list
+RUN pip list --format=freeze | cut -d "=" -f 1 > /app/packages.txt
+
+# Add entrypoint script
+COPY run-multi.sh /app/run-multi.sh
+RUN chmod +x /app/run-multi.sh
+
+CMD ["/app/run-multi.sh"]

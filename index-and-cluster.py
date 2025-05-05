@@ -22,7 +22,7 @@ INDEX_FILE = "face_index.pkl"
 HASH_SIZE = 16
 THUMB_WIDTH = 400
 N_BG_CLUSTERS = 5
-MAX_DEPTH = 3
+MAX_DEPTH = 4
 
 os.makedirs(THUMB_DIR, exist_ok=True)
 os.makedirs(CLUSTER_PHASH_DIR, exist_ok=True)
