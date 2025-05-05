@@ -14,7 +14,6 @@ import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, message=".*iCCP.*")
 
-PHOTO_DIR = "/Volumes/super_54/google/sean.goggins/Google Photos" 
 THUMB_DIR = "static/thumbnails"
 CLUSTER_PHASH_DIR = "static/clusters/phash"
 CLUSTER_BG_DIR = "static/clusters/bg"
@@ -28,6 +27,7 @@ os.makedirs(CLUSTER_PHASH_DIR, exist_ok=True)
 os.makedirs(CLUSTER_BG_DIR, exist_ok=True)
 
 parser = argparse.ArgumentParser(description="Index and cluster images.")
+parser.add_argument("paths", nargs="*", help="Image root paths or a file containing newline-separated image paths.")
 parser.add_argument("--thumbnails-only", action="store_true", help="Only regenerate thumbnails.")
 parser.add_argument("--cluster-only", action="store_true", help="Only run clustering on existing images.")
 args = parser.parse_args()
@@ -35,7 +35,27 @@ args = parser.parse_args()
 def is_valid_image_file(path):
     return path.is_file() and path.suffix.lower() in [".jpg", ".jpeg", ".png", ".bmp"]
 
-image_paths = [p for p in Path(PHOTO_DIR).rglob("*") if is_valid_image_file(p)]
+def collect_image_paths(sources):
+    collected = []
+    for source in sources:
+        p = Path(source)
+        if p.is_file() and p.suffix.lower() not in [".jpg", ".jpeg", ".png", ".bmp"]:
+            # Assume it's a newline-delimited list of paths
+            with open(p) as f:
+                for line in f:
+                    path = Path(line.strip())
+                    if path.exists() and is_valid_image_file(path):
+                        collected.append(path)
+        elif p.is_dir():
+            collected.extend([fp for fp in p.rglob("*") if is_valid_image_file(fp)])
+        elif p.is_file() and is_valid_image_file(p):
+            collected.append(p)
+    return collected
+
+image_paths = collect_image_paths(args.paths)
+if not image_paths:
+    print("❌ No valid image files found.")
+    exit(1)
 
 def process_image(path):
     result = {
