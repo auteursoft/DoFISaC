@@ -14,7 +14,7 @@ import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, message=".*iCCP.*")
 
-PHOTO_DIR = "photos"
+PHOTO_DIR = "/Volumes/super_54/google/sean.goggins/Google Photos" 
 THUMB_DIR = "static/thumbnails"
 CLUSTER_PHASH_DIR = "static/clusters/phash"
 CLUSTER_BG_DIR = "static/clusters/bg"
