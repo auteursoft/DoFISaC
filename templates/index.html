@@ -1,13 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Face Search</title>
-</head>
-<body>
-    <h1>Upload a Face Image</h1>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="query" accept="image/*" required>
-        <button type="submit">Search</button>
-    </form>
-</body>
-</html>
+<h1>Photo Search and Cluster Browser</h1>
+<ul>
+  <li><a href="{{ url_for('clusters_phash') }}">Perceptual Hash Clusters</a></li>
+  <li><a href="{{ url_for('clusters_bg') }}">Background Feature Clusters</a></li>
+</ul>

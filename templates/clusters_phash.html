@@ -1,0 +1,7 @@
+<h1>{{ 'Perceptual Hash' if request.path.endswith('phash') else 'Background' }} Clusters</h1>
+{% for cluster, images in clusters.items() %}
+  <h2>{{ cluster }}</h2>
+  {% for img in images %}
+    <a href="{{ img }}" target="_blank"><img src="{{ img }}" style="width: 200px; margin: 5px;"></a>
+  {% endfor %}
+{% endfor %}

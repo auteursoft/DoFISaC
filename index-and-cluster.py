@@ -1,4 +1,5 @@
 import os
+import argparse
 from pathlib import Path
 from PIL import Image
 import face_recognition
@@ -8,8 +9,12 @@ import imagehash
 from shutil import copy2
 import cv2
 from sklearn.cluster import DBSCAN, KMeans
+from multiprocessing import Pool, cpu_count
+import warnings
 
-PHOTO_DIR = "/Volumes/super_54/google/sean.goggins/Google Photos" 
+warnings.filterwarnings("ignore", category=UserWarning, message=".*iCCP.*")
+
+PHOTO_DIR = "photos"
 THUMB_DIR = "static/thumbnails"
 CLUSTER_PHASH_DIR = "static/clusters/phash"
 CLUSTER_BG_DIR = "static/clusters/bg"
@@ -22,64 +27,100 @@ os.makedirs(THUMB_DIR, exist_ok=True)
 os.makedirs(CLUSTER_PHASH_DIR, exist_ok=True)
 os.makedirs(CLUSTER_BG_DIR, exist_ok=True)
 
-face_db = []
-hashes = []
-hash_paths = []
-bg_features = []
-bg_paths = []
+parser = argparse.ArgumentParser(description="Index and cluster images.")
+parser.add_argument("--thumbnails-only", action="store_true", help="Only regenerate thumbnails.")
+parser.add_argument("--cluster-only", action="store_true", help="Only run clustering on existing images.")
+args = parser.parse_args()
 
-# === Index and Thumbnail ===
-for path in Path(PHOTO_DIR).glob("*.*"):
+def is_valid_image_file(path):
+    return path.is_file() and path.suffix.lower() in [".jpg", ".jpeg", ".png", ".bmp"]
+
+image_paths = [p for p in Path(PHOTO_DIR).rglob("*") if is_valid_image_file(p)]
+
+def process_image(path):
+    result = {
+        "path": str(path),
+        "rel_path": os.path.relpath(path),
+        "face_encodings": [],
+        "thumb_path": None,
+        "phash": None,
+        "bg_feat": None
+    }
+
     try:
         img = Image.open(path).convert("RGB")
-        rel_path = os.path.relpath(path)
-        # === Face Encoding ===
-        encodings = face_recognition.face_encodings(np.array(img))
-        for encoding in encodings:
-            face_db.append({"path": rel_path, "encoding": encoding})
+        np_img = np.array(img)
 
-        # === Thumbnail ===
+        if not args.cluster_only:
+            encodings = face_recognition.face_encodings(np_img)
+            result["face_encodings"] = encodings
+
         thumb_path = Path(THUMB_DIR) / path.name
         if not thumb_path.exists():
             img.thumbnail((THUMB_WIDTH, THUMB_WIDTH * 10000), Image.LANCZOS)
             img.save(thumb_path)
+        result["thumb_path"] = str(thumb_path)
 
-        # === Perceptual Hash Clustering Prep ===
-        hash_val = imagehash.phash(img, hash_size=HASH_SIZE)
-        hashes.append(hash_val.hash.flatten())
-        hash_paths.append(path)
-
-        # === Background Clustering Prep ===
-        cv_img = cv2.imread(str(path))
-        if cv_img is not None:
-            resized = cv2.resize(cv_img, (100, 100))
-            bg_features.append(resized.mean(axis=(0, 1)))
-            bg_paths.append(path)
+        if not args.thumbnails_only:
+            result["phash"] = imagehash.phash(img, hash_size=HASH_SIZE).hash.flatten()
+            cv_img = cv2.imread(str(path))
+            if cv_img is not None:
+                resized = cv2.resize(cv_img, (100, 100))
+                result["bg_feat"] = resized.mean(axis=(0, 1))
 
     except Exception as e:
-        print(f"❌ Skipping {path}: {e}")
+        print(f"❌ Error processing {path}: {e}")
 
-# === Save Face Index ===
-with open(INDEX_FILE, "wb") as f:
-    pickle.dump(face_db, f)
-print(f"✅ Saved face index to {INDEX_FILE}")
+    return result
 
-# === Cluster by Perceptual Hash ===
-hash_array = np.array(hashes)
-phash_labels = DBSCAN(eps=0.25, min_samples=2, metric='hamming').fit_predict(hash_array)
+print(f"🧠 Processing {len(image_paths)} images with {cpu_count()} cores...")
+with Pool() as pool:
+    processed = list(pool.map(process_image, image_paths))
 
-for path, label in zip(hash_paths, phash_labels):
-    folder = Path(CLUSTER_PHASH_DIR) / f"cluster_{label if label != -1 else 'unclustered'}"
-    folder.mkdir(parents=True, exist_ok=True)
-    copy2(path, folder / path.name)
+face_db = []
+phash_vectors = []
+phash_paths = []
+bg_features = []
+bg_paths = []
 
-# === Cluster by Background Color ===
-bg_features = np.array(bg_features)
-bg_labels = KMeans(n_clusters=N_BG_CLUSTERS, random_state=42).fit_predict(bg_features)
+for item in processed:
+    for encoding in item["face_encodings"]:
+        face_db.append({"path": item["rel_path"], "encoding": encoding})
+    if item["phash"] is not None:
+        phash_vectors.append(item["phash"])
+        phash_paths.append(Path(item["path"]))
+    if item["bg_feat"] is not None:
+        bg_features.append(item["bg_feat"])
+        bg_paths.append(Path(item["path"]))
 
-for path, label in zip(bg_paths, bg_labels):
-    folder = Path(CLUSTER_BG_DIR) / f"cluster_{label}"
-    folder.mkdir(parents=True, exist_ok=True)
-    copy2(path, folder / path.name)
+if not args.cluster_only:
+    with open(INDEX_FILE, "wb") as f:
+        pickle.dump(face_db, f)
+    print(f"✅ Saved face index to {INDEX_FILE} ({len(face_db)} face encodings)")
 
-print("✅ Clustering complete.")
+if not args.thumbnails_only:
+    print("🔍 Clustering by perceptual hash...")
+    if phash_vectors:
+        phash_array = np.array(phash_vectors)
+        phash_labels = DBSCAN(eps=0.25, min_samples=2, metric='hamming').fit_predict(phash_array)
+        for path, label in zip(phash_paths, phash_labels):
+            folder = Path(CLUSTER_PHASH_DIR) / f"cluster_{label if label != -1 else 'unclustered'}"
+            folder.mkdir(parents=True, exist_ok=True)
+            copy2(path, folder / path.name)
+        print(f"✅ Clustered {len(phash_paths)} images by perceptual hash.")
+    else:
+        print("⚠️ No valid images found for phash clustering.")
+
+    print("🔍 Clustering by background features...")
+    if len(bg_features) > 1:
+        actual_clusters = min(N_BG_CLUSTERS, len(bg_features))
+        bg_labels = KMeans(n_clusters=actual_clusters, random_state=42).fit_predict(np.array(bg_features))
+        for path, label in zip(bg_paths, bg_labels):
+            folder = Path(CLUSTER_BG_DIR) / f"cluster_{label}"
+            folder.mkdir(parents=True, exist_ok=True)
+            copy2(path, folder / path.name)
+        print(f"✅ Clustered {len(bg_paths)} images by background ({actual_clusters} clusters).")
+    else:
+        print("⚠️ Not enough images for background clustering.")
+
+print("🏁 Done.")
