@@ -2,8 +2,13 @@
 <p>Query Image: {{ query }}</p>
 {% if results %}
 <ul>
-  {% for path in results %}
-    <li><img src="{{ path }}" height="100"> {{ path }}</li>
+  {% for result in results %}
+    <li>
+      <a href="file://{{ result.full_path }}" target="_blank">
+        <img src="{{ result.thumb_url }}" height="100">
+      </a>
+      {{ result.full_path }}
+    </li>
   {% endfor %}
 </ul>
 {% else %}

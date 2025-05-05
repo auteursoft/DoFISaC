@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
+THUMBNAIL_DIR = "static/thumbnails"
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 CLUSTER_PHASH_DIR = "static/clusters/phash"
 CLUSTER_BG_DIR = "static/clusters/bg"
@@ -32,7 +33,11 @@ def search_faces(image_path, index, tolerance=0.6):
     for encoding in encodings:
         for entry in index:
             if face_recognition.compare_faces([entry["encoding"]], encoding, tolerance=tolerance)[0]:
-                matches.append(entry["path"])
+                thumb = os.path.basename(entry["path"])
+                matches.append({
+                    "full_path": entry["path"],
+                    "thumb_url": url_for('static', filename=f"thumbnails/{thumb}")
+                })
     return matches
 
 @app.route("/")
