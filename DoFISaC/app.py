@@ -1,32 +1,29 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+
+from flask import Flask, render_template, request, jsonify, url_for
 import os
 import json
 import pickle
 from pathlib import Path
 import numpy as np
-from PIL import Image
-import faiss
 from insightface.app import FaceAnalysis
 from transformers import CLIPProcessor, CLIPModel
+from PIL import Image
+import faiss
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates", static_folder="static")
 UPLOAD_FOLDER = "static/uploads"
 THUMBNAIL_DIR = "static/thumbnails"
-CLUSTER_PHASH_DIR = "static/clusters/phash"
-CLUSTER_BG_DIR = "static/clusters/bg"
 INDEX_PATH = "face_index.pkl"
 FEEDBACK_PATH = "static/feedback.json"
 CLUSTER_FEEDBACK_PATH = "static/cluster_feedback.json"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Load models
 face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
 face_model.prepare(ctx_id=0)
 clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# Load index
 with open(INDEX_PATH, "rb") as f:
     face_db = pickle.load(f)
 
@@ -70,8 +67,6 @@ def search():
             dists, idxs = bg_index.search(np.array([bg_vec]).astype("float32"), 50)
             for i in idxs[0]:
                 results.append(face_db[i])
-
-        # Remove duplicates
         seen = set()
         unique = []
         for r in results:
@@ -84,7 +79,7 @@ def search():
 @app.route("/clusters/phash")
 def clusters_phash():
     clusters = {}
-    base = Path(CLUSTER_PHASH_DIR)
+    base = Path("static/clusters/phash")
     for cluster_dir in base.glob("cluster_*"):
         clusters[cluster_dir.name] = sorted([f"/{cluster_dir / img.name}" for img in cluster_dir.glob("*")])
     return render_template("clusters_phash.html", clusters=clusters)
@@ -92,14 +87,10 @@ def clusters_phash():
 @app.route("/clusters/bg")
 def clusters_bg():
     clusters = {}
-    base = Path(CLUSTER_BG_DIR)
+    base = Path("static/clusters/bg")
     for cluster_dir in base.glob("cluster_*"):
         clusters[cluster_dir.name] = sorted([f"/{cluster_dir / img.name}" for img in cluster_dir.glob("*")])
-    return render_template("clusters_bg.html", clusters=clusters)
-
-@app.route("/retrain")
-def retrain():
-    return render_template("retrain.html")
+    return render_template("clusters_phash.html", clusters=clusters)
 
 @app.route("/feedback", methods=["POST"])
 def feedback():
@@ -116,10 +107,6 @@ def feedback():
     with open(feedback_path, "w") as f:
         json.dump(feedback, f, indent=2)
     return jsonify(status="ok")
-
-@app.route("/static/uploads/<filename>")
-def uploaded_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
 
 if __name__ == "__main__":
     app.run(debug=True)
