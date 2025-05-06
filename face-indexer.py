@@ -26,6 +26,9 @@ def extract_face_embedding(image_np):
     faces = face_model.get(image_np)
     return faces[0].embedding if faces else None
 
+def hash_filename(path):
+    return hashlib.md5(path.encode()).hexdigest() + os.path.splitext(path)[1]
+
 face_db = []
 for root, _, files in os.walk(PHOTO_DIR):
     for file in tqdm(files):
@@ -37,7 +40,7 @@ for root, _, files in os.walk(PHOTO_DIR):
             img_np = np.array(img)
             face_vec = extract_face_embedding(img_np)
             bg_vec = extract_clip_embedding(img)
-            thumb_name = os.path.basename(filepath)
+            thumb_name = hash_filename(filepath)
             thumb_path = os.path.join(THUMBNAIL_DIR, thumb_name)
             img.thumbnail((160, 160))
             img.save(thumb_path)
@@ -48,8 +51,9 @@ for root, _, files in os.walk(PHOTO_DIR):
                 "bg_vec": bg_vec
             })
         except Exception as e:
-            print(f"Skipped {file}: {e}")
+            print(f"⚠️ Skipped {filepath}: {e}")
 
 with open(OUTPUT_PKL, "wb") as f:
     pickle.dump(face_db, f)
+
 print(f"✅ Indexed {len(face_db)} images.")

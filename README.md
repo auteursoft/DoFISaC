@@ -1,4 +1,8 @@
-# All logic for index, search, clustering, feedback included
+# Facial-Search
+
+This version avoids thumbnail collision and handles special characters. 
+
+<iframe width="560" height="315" src="https://www.youtube.com/watch?v=raRGnueg8Lo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 1. app.py – Flask app with:
 2. ✅ InsightFace + CLIP
