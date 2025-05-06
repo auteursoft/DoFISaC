@@ -1,1 +1,1 @@
-0 3 * * * /usr/bin/python3 /path/to/retrain.py >> /var/log/facial_retrain.log 2>&1
+0 3 * * * /usr/bin/python3 /full/path/to/retrain.py >> /var/log/facial_retrain.log 2>&1

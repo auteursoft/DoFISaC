@@ -1,15 +1,33 @@
-# Facial Search App Bundle
+# Facial Search App (Complete Bundle)
 
-## Contents
-- `flask-app/` - The full web UI with integrated feedback
-- `retrain.py` - Cron-compatible retraining script
-- `cronjob.txt` - Crontab entry to schedule daily retraining
-- `logo.png` - Silly logo for branding
+## Quick Start
 
-## Installation Steps
-1. Unzip `flask-app` and install dependencies (see previous instructions)
-2. Run the Flask app with `python app.py`
-3. Use `face-indexer.py` to generate your vector indexes
-4. Add the crontab entry from `cronjob.txt` to run `retrain.py` daily
+1. Unzip:
+   ```bash
+   unzip facial_search_app_complete_ready.zip
+   cd facial_search_app_complete_ready
+   ```
 
-Enjoy the selfies! 🪞
+2. Add `face_index.pkl` to the same folder.
+
+3. Install dependencies:
+   ```bash
+   pip install flask insightface faiss-cpu transformers torch pillow tqdm
+   ```
+
+4. Run:
+   ```bash
+   python app.py
+   ```
+
+5. Visit: http://localhost:5000
+
+## Retraining
+
+- Feedback is saved per image in `static/feedback.json`
+- Daily retraining is configured via `cronjob.txt`:
+  ```bash
+  crontab -e
+  ```
+
+Enjoy your high-performance, feedback-aware facial search engine!
