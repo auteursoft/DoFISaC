@@ -2,27 +2,26 @@
 <html>
 <head>
     <title>Search Results</title>
-    <script>
-        function vote(image, label) {
-            fetch('/feedback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: image, label: label, context: "face_search" })
-            });
-        }
-    </script>
+    <style>
+        body { font-family: sans-serif; margin: 40px; }
+        img.thumb { width: 160px; height: auto; border-radius: 8px; }
+        .result { margin-bottom: 20px; }
+    </style>
 </head>
 <body>
-    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
-    <h2>Search Results for {{ query }}</h2>
-    {% for result in results %}
-        <div>
-            <img src="{{ url_for('static', filename='thumbnails/' + result.thumb_name) }}" style="height: 100px;"><br>
-            <small>{{ result.path }}</small><br>
-            <button onclick="vote('{{ result.path }}', 'correct')">Correct</button>
-            <button onclick="vote('{{ result.path }}', 'not_correct')">Not Correct</button>
+    <h1>Search Results for {{ query }}</h1>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+    <div>
+        {% for result in results %}
+        <div class="result">
+            <img class="thumb" src="{{ url_for('static', filename='thumbnails/' + result.thumb_name) }}" alt="thumbnail">
+            <p>
+                <a href="file://{{ result.path }}" target="_blank">{{ result.path }}</a><br>
+                Match: {{ result.match_type if result.match_type else "unknown" }}<br>
+                Distance: {{ '%.2f' % result.distance if result.distance else "n/a" }}
+            </p>
         </div>
-        <hr>
-    {% endfor %}
+        {% endfor %}
+    </div>
 </body>
 </html>
