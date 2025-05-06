@@ -1,4 +1,4 @@
-# Facial-Search
+# DoFISaC: Division of Facial Image Searching and Clustering
 
 This version avoids thumbnail collision and handles special characters. 
 
