@@ -1,13 +1,12 @@
-
 from flask import Flask, render_template, request, jsonify, url_for
 import os
 import json
 import pickle
-from pathlib import Path
 import numpy as np
-from insightface.app import FaceAnalysis
-from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
+from pathlib import Path
+from transformers import CLIPProcessor, CLIPModel
+from insightface.app import FaceAnalysis
 import faiss
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
@@ -16,24 +15,30 @@ THUMBNAIL_DIR = "static/thumbnails"
 INDEX_PATH = "face_index.pkl"
 FEEDBACK_PATH = "static/feedback.json"
 CLUSTER_FEEDBACK_PATH = "static/cluster_feedback.json"
+PHASH_CLUSTER_PATH = "phash_clusters.json"
+BG_CLUSTER_PATH = "bg_clusters.json"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Load models
 face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
 face_model.prepare(ctx_id=0)
 clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
+# Load face index
 with open(INDEX_PATH, "rb") as f:
     face_db = pickle.load(f)
 
 face_vectors = np.array([entry["face_vec"] for entry in face_db if entry["face_vec"] is not None]).astype("float32")
 bg_vectors = np.array([entry["bg_vec"] for entry in face_db if entry["bg_vec"] is not None]).astype("float32")
+
 face_index = faiss.IndexFlatL2(face_vectors.shape[1])
 bg_index = faiss.IndexFlatL2(bg_vectors.shape[1])
 face_index.add(face_vectors)
 bg_index.add(bg_vectors)
 
+# Embedding helpers
 def extract_face_embedding(image_np):
     faces = face_model.get(image_np)
     return faces[0].embedding if faces else None
@@ -42,6 +47,7 @@ def extract_clip_embedding(image):
     inputs = clip_processor(images=image, return_tensors="pt", padding=True)
     return clip_model.get_image_features(**inputs)[0].detach().numpy()
 
+# Routes
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -78,19 +84,15 @@ def search():
 
 @app.route("/clusters/phash")
 def clusters_phash():
-    clusters = {}
-    base = Path("static/clusters/phash")
-    for cluster_dir in base.glob("cluster_*"):
-        clusters[cluster_dir.name] = sorted([f"/{cluster_dir / img.name}" for img in cluster_dir.glob("*")])
+    with open(PHASH_CLUSTER_PATH, "r") as f:
+        clusters = json.load(f)
     return render_template("clusters_phash.html", clusters=clusters)
 
 @app.route("/clusters/bg")
 def clusters_bg():
-    clusters = {}
-    base = Path("static/clusters/bg")
-    for cluster_dir in base.glob("cluster_*"):
-        clusters[cluster_dir.name] = sorted([f"/{cluster_dir / img.name}" for img in cluster_dir.glob("*")])
-    return render_template("clusters_phash.html", clusters=clusters)
+    with open(BG_CLUSTER_PATH, "r") as f:
+        clusters = json.load(f)
+    return render_template("clusters_bg.html", clusters=clusters)
 
 @app.route("/feedback", methods=["POST"])
 def feedback():
@@ -108,5 +110,6 @@ def feedback():
         json.dump(feedback, f, indent=2)
     return jsonify(status="ok")
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route("/retrain", methods=["GET"])
+def retrain():
+    return render_template("retrain.html")
