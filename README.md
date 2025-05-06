@@ -13,7 +13,7 @@ I would not rick roll you with an image of a rick roll. Ergo, this is called a r
 4. ✅ Binary voting for face matches
 5. ✅ 1–6 scale voting for cluster quality
 
-## Specific Scripts and Directories: 
+## Specific Scripts and Directories (Under the DoFISaC/ Directory): 
 6. face-indexer.py – Embeds faces and scenes, generates thumbnails, builds index `python face-indexer.py "/path/to/my/photo/folder"`
 7. clustering.py – Combines vectors, clusters using DBSCAN based on data scale
 8. retrain.py – Placeholder for retraining logic
