@@ -113,3 +113,6 @@ def feedback():
 @app.route("/retrain", methods=["GET"])
 def retrain():
     return render_template("retrain.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)
