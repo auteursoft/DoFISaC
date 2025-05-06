@@ -1,1 +1,1 @@
-# Retraining logic using feedback.json and FAISS goes here
+# Retrain from feedback placeholder
