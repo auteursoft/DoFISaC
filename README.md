@@ -16,6 +16,8 @@ This version avoids thumbnail collision and handles special characters.
 10. templates/ – Basic HTML for search, results, cluster feedback
 11. static/ – Logo and stylesheet
 12. README.md – Basic setup instructions
+13. `retry-errors.py` will scan the error log and add previously errored files to an existing face-search pkl file. Clustering will need to be redone entirely if the clusters have already been generated. 
+14. Love
 
 ## Installation:
 
