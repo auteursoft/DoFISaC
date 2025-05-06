@@ -11,7 +11,7 @@ I would not rick roll you with an image of a rick roll. Ergo, this is called a r
 3. ✅ FAISS search
 4. ✅ Binary voting for face matches
 5. ✅ 1–6 scale voting for cluster quality
-6. face-indexer.py – Embeds faces and scenes, generates thumbnails, builds index
+6. face-indexer.py – Embeds faces and scenes, generates thumbnails, builds index `python face-indexer.py "/path/to/my/photo/folder"`
 7. clustering.py – Combines vectors, clusters using DBSCAN based on data scale
 8. retrain.py – Placeholder for retraining logic
 9. cronjob.txt – Example for scheduled retraining
@@ -22,7 +22,19 @@ I would not rick roll you with an image of a rick roll. Ergo, this is called a r
 14. Love
 
 ## Installation:
+1. Create a python 3 virutal environment using python 3.11. Versions of python above 3.11 do not support some of the libraries used here at the time of creation. The `requirements.txt` file is library version agnostic in order to better support future updates without repository modification. For research and development always be sure to save the specific versions used for future reference by running something like `pip freeze > 20250506-execution.txt`, for example. 
 
+```bash
+python 3.11 -m venv .venv
+```
+2. Install libraries
+```bash
+pip install -r requirements.txt
+```
+3. Activate the venv: 
+```bash
+source .venv/bin/activate
+```
 
 
 ## Saving updated requirements:

@@ -1,13 +1,20 @@
 import os
+import sys
 import pickle
 import numpy as np
 from tqdm import tqdm
 from PIL import Image
 from pathlib import Path
+import hashlib
 from insightface.app import FaceAnalysis
 from transformers import CLIPProcessor, CLIPModel
 
-PHOTO_DIR = "photos"
+# Get path from command-line
+if len(sys.argv) < 2:
+    print("❌ Usage: python face-indexer.py <path_to_photos>")
+    sys.exit(1)
+
+PHOTO_DIR = sys.argv[1]
 OUTPUT_PKL = "face_index.pkl"
 THUMBNAIL_DIR = "static/thumbnails"
 
@@ -56,4 +63,4 @@ for root, _, files in os.walk(PHOTO_DIR):
 with open(OUTPUT_PKL, "wb") as f:
     pickle.dump(face_db, f)
 
-print(f"✅ Indexed {len(face_db)} images.")
+print(f"✅ Indexed {len(face_db)} images from {PHOTO_DIR}")
