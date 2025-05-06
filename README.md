@@ -1,1 +1,1 @@
-# Includes clustering, indexing, voting feedback
+# All logic for index, search, clustering, feedback included
