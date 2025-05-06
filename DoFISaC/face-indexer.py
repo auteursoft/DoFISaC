@@ -2,15 +2,14 @@ import os
 import sys
 import pickle
 import numpy as np
-from tqdm import tqdm
-from PIL import Image
-from pathlib import Path
 import hashlib
+from PIL import Image
+from tqdm import tqdm
+from pathlib import Path
+from multiprocessing import Pool, cpu_count
+import onnxruntime as ort
 from insightface.app import FaceAnalysis
 from transformers import CLIPProcessor, CLIPModel
-from insightface.app import FaceAnalysis
-from transformers import CLIPProcessor, CLIPModel
-import onnxruntime as ort  # <-- Add this if not already imported
 
 if len(sys.argv) < 2:
     print("❌ Usage: python face-indexer.py <path_to_photos>")
@@ -23,16 +22,18 @@ ERROR_LOG = "index.err"
 
 os.makedirs(THUMBNAIL_DIR, exist_ok=True)
 
-# face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
+# Load models globally for workers
+face_model = None
+clip_model = None
+clip_processor = None
 
-# Auto-detect available execution provider
-providers = ["CUDAExecutionProvider"] if "CUDAExecutionProvider" in ort.get_available_providers() else ["CPUExecutionProvider"]
-face_model = FaceAnalysis(name="buffalo_l", providers=providers)
-
-face_model.prepare(ctx_id=0)
-clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)
-#clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+def init_models():
+    global face_model, clip_model, clip_processor
+    providers = ["CUDAExecutionProvider"] if "CUDAExecutionProvider" in ort.get_available_providers() else ["CPUExecutionProvider"]
+    face_model = FaceAnalysis(name="buffalo_l", providers=providers)
+    face_model.prepare(ctx_id=0)
+    clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+    clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)
 
 def extract_clip_embedding(image):
     inputs = clip_processor(images=image, return_tensors="pt", padding=True)
@@ -45,12 +46,7 @@ def extract_face_embedding(image_np):
 def hash_filename(path):
     return hashlib.md5(path.encode()).hexdigest() + os.path.splitext(path)[1]
 
-face_db = []
-errors = []
-
-image_paths = [str(p) for p in Path(PHOTO_DIR).rglob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png")]
-
-for filepath in tqdm(image_paths, desc="Indexing photos"):
+def process_image(filepath):
     try:
         img = Image.open(filepath).convert("RGB")
         img_np = np.array(img)
@@ -68,23 +64,28 @@ for filepath in tqdm(image_paths, desc="Indexing photos"):
         img.thumbnail((160, 160))
         img.save(thumb_path)
 
-        face_db.append({
+        return {
             "path": filepath,
             "thumb_name": thumb_name,
             "face_vec": face_vec,
             "bg_vec": bg_vec
-        })
-
+        }
     except Exception as e:
-        errors.append(f"{filepath} | {str(e)}")
+        return {"error": f"{filepath} | {str(e)}"}
 
-# Save error log
+image_paths = [str(p) for p in Path(PHOTO_DIR).rglob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png")]
+
+with Pool(processes=cpu_count(), initializer=init_models) as pool:
+    results = list(tqdm(pool.imap(process_image, image_paths), total=len(image_paths), desc="Indexing photos"))
+
+face_db = [r for r in results if "error" not in r]
+errors = [r["error"] for r in results if "error" in r]
+
+with open(OUTPUT_PKL, "wb") as f:
+    pickle.dump(face_db, f)
+
 if errors:
     with open(ERROR_LOG, "w") as ef:
         ef.write("\n".join(errors))
-
-# Save index
-with open(OUTPUT_PKL, "wb") as f:
-    pickle.dump(face_db, f)
 
 print(f"✅ Indexed {len(face_db)} images from {PHOTO_DIR}. Skipped {len(errors)}.")
