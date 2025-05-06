@@ -4,6 +4,8 @@ This version avoids thumbnail collision and handles special characters.
 
 <iframe width="560" height="315" src="https://www.youtube.com/watch?v=raRGnueg8Lo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
+[![Watch the video](https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg)](https://www.youtube.com/watch?v=raRGnueg8Lo)
+
 1. app.py – Flask app with:
 2. ✅ InsightFace + CLIP
 3. ✅ FAISS search
