@@ -2,6 +2,8 @@
 
 This version avoids thumbnail collision and handles special characters. 
 
+I would not rick roll you with an image of a rick roll. Ergo, this is called a reverse rick roll, or in some quarters a double secret rick roll. 
+
 [![Watch the video](https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg)](https://www.youtube.com/watch?v=raRGnueg8Lo)
 
 1. app.py – Flask app with:
