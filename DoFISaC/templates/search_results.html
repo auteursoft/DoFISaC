@@ -1,1 +1,28 @@
-<p>Results with voting</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+    <script>
+        function vote(image, label) {
+            fetch('/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: image, label: label, context: "face_search" })
+            });
+        }
+    </script>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
+    <h2>Search Results for {{ query }}</h2>
+    {% for result in results %}
+        <div>
+            <img src="{{ url_for('static', filename='thumbnails/' + result.thumb_name) }}" style="height: 100px;"><br>
+            <small>{{ result.path }}</small><br>
+            <button onclick="vote('{{ result.path }}', 'correct')">Correct</button>
+            <button onclick="vote('{{ result.path }}', 'not_correct')">Not Correct</button>
+        </div>
+        <hr>
+    {% endfor %}
+</body>
+</html>
