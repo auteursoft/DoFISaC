@@ -8,6 +8,9 @@ from pathlib import Path
 import hashlib
 from insightface.app import FaceAnalysis
 from transformers import CLIPProcessor, CLIPModel
+from insightface.app import FaceAnalysis
+from transformers import CLIPProcessor, CLIPModel
+import onnxruntime as ort  # <-- Add this if not already imported
 
 if len(sys.argv) < 2:
     print("❌ Usage: python face-indexer.py <path_to_photos>")
@@ -20,7 +23,12 @@ ERROR_LOG = "index.err"
 
 os.makedirs(THUMBNAIL_DIR, exist_ok=True)
 
-face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
+# face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
+
+# Auto-detect available execution provider
+providers = ["CUDAExecutionProvider"] if "CUDAExecutionProvider" in ort.get_available_providers() else ["CPUExecutionProvider"]
+face_model = FaceAnalysis(name="buffalo_l", providers=providers)
+
 face_model.prepare(ctx_id=0)
 clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
