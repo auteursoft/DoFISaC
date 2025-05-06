@@ -31,7 +31,8 @@ face_model = FaceAnalysis(name="buffalo_l", providers=providers)
 
 face_model.prepare(ctx_id=0)
 clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)
+#clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 def extract_clip_embedding(image):
     inputs = clip_processor(images=image, return_tensors="pt", padding=True)
