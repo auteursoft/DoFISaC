@@ -1,1 +1,1 @@
-# Full bundle with retrain + indexer
+# Includes clustering, indexing, voting feedback
