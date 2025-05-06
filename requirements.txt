@@ -63,6 +63,7 @@ threadpoolctl
 tifffile
 tokenizers
 torch
+torchvision
 tqdm
 transformers
 typing-inspection
