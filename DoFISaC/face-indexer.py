@@ -9,7 +9,6 @@ import hashlib
 from insightface.app import FaceAnalysis
 from transformers import CLIPProcessor, CLIPModel
 
-# Get path from command-line
 if len(sys.argv) < 2:
     print("❌ Usage: python face-indexer.py <path_to_photos>")
     sys.exit(1)
@@ -17,6 +16,7 @@ if len(sys.argv) < 2:
 PHOTO_DIR = sys.argv[1]
 OUTPUT_PKL = "face_index.pkl"
 THUMBNAIL_DIR = "static/thumbnails"
+ERROR_LOG = "index.err"
 
 os.makedirs(THUMBNAIL_DIR, exist_ok=True)
 
@@ -37,30 +37,45 @@ def hash_filename(path):
     return hashlib.md5(path.encode()).hexdigest() + os.path.splitext(path)[1]
 
 face_db = []
-for root, _, files in os.walk(PHOTO_DIR):
-    for file in tqdm(files):
-        if not file.lower().endswith((".jpg", ".jpeg", ".png")):
-            continue
-        filepath = os.path.join(root, file)
-        try:
-            img = Image.open(filepath).convert("RGB")
-            img_np = np.array(img)
-            face_vec = extract_face_embedding(img_np)
-            bg_vec = extract_clip_embedding(img)
-            thumb_name = hash_filename(filepath)
-            thumb_path = os.path.join(THUMBNAIL_DIR, thumb_name)
-            img.thumbnail((160, 160))
-            img.save(thumb_path)
-            face_db.append({
-                "path": filepath,
-                "thumb_name": thumb_name,
-                "face_vec": face_vec,
-                "bg_vec": bg_vec
-            })
-        except Exception as e:
-            print(f"⚠️ Skipped {filepath}: {e}")
+errors = []
 
+image_paths = [str(p) for p in Path(PHOTO_DIR).rglob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png")]
+
+for filepath in tqdm(image_paths, desc="Indexing photos"):
+    try:
+        img = Image.open(filepath).convert("RGB")
+        img_np = np.array(img)
+
+        face_vec = extract_face_embedding(img_np)
+        if face_vec is None:
+            raise ValueError("No face detected.")
+
+        bg_vec = extract_clip_embedding(img)
+        if bg_vec is None:
+            raise ValueError("Failed to compute background vector.")
+
+        thumb_name = hash_filename(filepath)
+        thumb_path = os.path.join(THUMBNAIL_DIR, thumb_name)
+        img.thumbnail((160, 160))
+        img.save(thumb_path)
+
+        face_db.append({
+            "path": filepath,
+            "thumb_name": thumb_name,
+            "face_vec": face_vec,
+            "bg_vec": bg_vec
+        })
+
+    except Exception as e:
+        errors.append(f"{filepath} | {str(e)}")
+
+# Save error log
+if errors:
+    with open(ERROR_LOG, "w") as ef:
+        ef.write("\n".join(errors))
+
+# Save index
 with open(OUTPUT_PKL, "wb") as f:
     pickle.dump(face_db, f)
 
-print(f"✅ Indexed {len(face_db)} images from {PHOTO_DIR}")
+print(f"✅ Indexed {len(face_db)} images from {PHOTO_DIR}. Skipped {len(errors)}.")
