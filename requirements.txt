@@ -5,6 +5,7 @@ blinker
 certifi
 charset-normalizer
 click
+coloredlogs
 contourpy
 cycler
 Cython
@@ -15,9 +16,11 @@ face_recognition_models
 faiss-cpu
 filelock
 Flask
+flatbuffers
 fonttools
 fsspec
 huggingface-hub
+humanfriendly
 idna
 ImageHash
 imageio
@@ -33,6 +36,7 @@ mpmath
 networkx
 numpy
 onnx
+onnxruntime
 opencv-python
 opencv-python-headless
 packaging
