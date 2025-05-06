@@ -6,11 +6,14 @@ I would not rick roll you with an image of a rick roll. Ergo, this is called a r
 
 [![Watch the video](https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg)](https://www.youtube.com/watch?v=raRGnueg8Lo)
 
-1. app.py – Flask app with:
+
+## Features
 2. ✅ InsightFace + CLIP
 3. ✅ FAISS search
 4. ✅ Binary voting for face matches
 5. ✅ 1–6 scale voting for cluster quality
+
+## Specific Scripts and Directories: 
 6. face-indexer.py – Embeds faces and scenes, generates thumbnails, builds index `python face-indexer.py "/path/to/my/photo/folder"`
 7. clustering.py – Combines vectors, clusters using DBSCAN based on data scale
 8. retrain.py – Placeholder for retraining logic
@@ -37,7 +40,7 @@ source .venv/bin/activate
 ```
 
 
-## Saving updated requirements:
+## Saving updated requirements without versioning (i.e., if you have an updated PR to submit or something similar):
 1. Unix/OSX: `pip freeze | cut -d '=' -f 1 > requirements.txt`
 2. Windows Powershell `pip freeze | ForEach-Object { ($_ -split '==')[0] } > requirements.txt`
 3. Full toxic pythonity: `python -m pip list --format=freeze | cut -d '=' -f 1 > requirements.txt`
