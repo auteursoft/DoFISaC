@@ -1,1 +1,34 @@
-<!-- Placeholder for clusters_phash.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phash Clusters</title>
+    <script>
+        function vote(image, label, context) {
+            fetch('/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: image, label: label, context: context })
+            });
+        }
+    </script>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
+    <h1>Clusters with 1–6 scale voting</h1>
+    {% for cluster_name, images in clusters.items() %}
+        <h3>{{ cluster_name }}</h3>
+        {% for img in images %}
+            <div>
+                <img src="{{ img }}" style="height: 100px;"><br>
+                <small>{{ img }}</small><br>
+                <select onchange="vote('{{ img }}', this.value, 'cluster_phash')">
+                    <option disabled selected>Rate</option>
+                    <option>1</option><option>2</option><option>3</option>
+                    <option>4</option><option>5</option><option>6</option>
+                </select>
+            </div>
+        {% endfor %}
+        <hr>
+    {% endfor %}
+</body>
+</html>

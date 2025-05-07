@@ -1,1 +1,27 @@
-<!-- Placeholder for search_results.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; }
+        img.thumb { width: 160px; height: auto; border-radius: 8px; }
+        .result { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Search Results for {{ query }}</h1>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+    <div>
+        {% for result in results %}
+        <div class="result">
+            <img class="thumb" src="{{ url_for('static', filename='thumbnails/' + result.thumb_name) }}" alt="thumbnail">
+            <p>
+                <a href="file://{{ result.path }}" target="_blank">{{ result.path }}</a><br>
+                Match: {{ result.match_type if result.match_type else "unknown" }}<br>
+                Distance: {{ '%.2f' % result.distance if result.distance else "n/a" }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

@@ -1,1 +1,14 @@
-<!-- Placeholder for search.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search</title>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
+    <h2>Upload an image to search</h2>
+    <form method='post' enctype='multipart/form-data'>
+        <input type='file' name='file' accept='image/*' required>
+        <input type='submit' value='Search'>
+    </form>
+</body>
+</html>
