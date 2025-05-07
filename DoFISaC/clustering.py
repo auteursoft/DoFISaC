@@ -6,6 +6,7 @@ from pathlib import Path
 import os
 import shutil
 import multiprocessing
+import json
 
 CLUSTER_OUTPUT_DIR = "static/clusters"
 PKL_PATH = "face_index.pkl"
@@ -51,6 +52,20 @@ def main():
         pool.map(save_cluster, zip(labels, valid_entries))
 
     print("✅ Clustering complete.")
+
+    cluster_map = {}
+
+    for label, entry in zip(labels, valid_entries):
+        cluster_name = f"cluster_{label}" if label >= 0 else "noise"
+        if cluster_name not in cluster_map:
+            cluster_map[cluster_name] = []
+        cluster_map[cluster_name].append(str(output_dir / cluster_name / Path(entry["path"]).name))
+
+    with open("phash_clusters.json", "w") as f:
+        json.dump(cluster_map, f, indent=2)
+
+    with open("bg_clusters.json", "w") as f:
+        json.dump(cluster_map, f, indent=2)
 
 if __name__ == "__main__":
     main()
