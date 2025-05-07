@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Search Results</title>
+    <title>Search Results</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; }
+        img.thumb { width: 160px; height: auto; border-radius: 8px; }
+        .result { margin-bottom: 20px; }
+    </style>
 </head>
 <body>
-  <h1>Search Results for {{ query }}</h1>
-  <a href="{{ url_for('index') }}">Back to Home</a>
-  <div style="display: flex; flex-wrap: wrap;">
-    {% for r in results %}
-      <div style="margin: 10px; text-align: center;">
-        <a href="file://{{ r.path }}" target="_blank">
-          <img src="{{ url_for('static', filename='thumbnails/' + r.thumb_name) }}" width="160">
-        </a>
-        <p>{{ r.path }}</p>
-        <p>Match: {{ r.get('match', 'unknown') }}</p>
-        <p>Distance: {{ "%.2f"|format(r.get('distance', 0)) if r.get('distance') else 'n/a' }}</p>
-      </div>
-    {% endfor %}
-  </div>
+    <h1>Search Results for {{ query }}</h1>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+    <div>
+        {% for result in results %}
+        <div class="result">
+            <img class="thumb" src="{{ url_for('static', filename='thumbnails/' + result.thumb_name) }}" alt="thumbnail">
+            <p>
+                <a href="file://{{ result.path }}" target="_blank">{{ result.path }}</a><br>
+                Match: {{ result.match_type if result.match_type else "unknown" }}<br>
+                Distance: {{ '%.2f' % result.distance if result.distance else "n/a" }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
 </body>
 </html>

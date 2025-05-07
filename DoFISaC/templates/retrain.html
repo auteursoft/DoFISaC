@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Retrain Clusters</title>
+    <title>Retrain Index</title>
 </head>
 <body>
-  <h1>Retrain Feedback-Based Clusters</h1>
-  <form action="{{ url_for('trigger_retrain') }}" method="post">
-    <input type="submit" value="Run Retraining">
-  </form>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
+    <h1>Admin Retrain</h1>
+    <form method="POST">
+        <label>Token:</label>
+        <input type="password" name="token" required />
+        <input type="submit" value="Trigger Retrain" />
+    </form>
+    {% if status %}
+        <p>{{ status }}</p>
+    {% endif %}
 </body>
 </html>
