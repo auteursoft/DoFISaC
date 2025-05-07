@@ -14,27 +14,27 @@ I would not rick roll you with an image of a rick roll. Ergo, this is called a r
 
 ### Feature Descriptions
 1.	clustering.py
-•	Uses only thumbnail references, no full-size image copying.
-•	Outputs proper phash_clusters.json and bg_clusters.json with thumbnail names and original paths.
-•	Fully multiprocessing-safe.
+ - Uses only thumbnail references, no full-size image copying.
+ - Outputs proper phash_clusters.json and bg_clusters.json with thumbnail names and original paths.
+ - Fully multiprocessing-safe.
 2.	Templates (index.html, search.html, clusters_phash.html, clusters_bg.html):
-•	Proper logo references, styles, and structure.
-•	Pagination support and working lazy loading.
-•	Face search results display:
-•	Correct Match and Distance values.
-•	Feedback controls.
-•	Clickable full-size photo links (using href).
+ - Proper logo references, styles, and structure.
+ - Pagination support and working lazy loading.
+ - Face search results display:
+ - Correct Match and Distance values.
+ - Feedback controls.
+ - Clickable full-size photo links (using href).
 3.	app.py:
-•	Matches all template expectations (e.g., page_count defined).
-•	All endpoints return expected data for templates.
-•	Supports search pagination and feedback routing.
+ - Matches all template expectations (e.g., page_count defined).
+ - All endpoints return expected data for templates.
+ - Supports search pagination and feedback routing.
 4.	face-indexer.py:
-•	Proper Match and Distance calculation and formatting.
-•	Logs errors cleanly.
-•	Generates thumbnails and stores only references.
+ - Proper Match and Distance calculation and formatting.
+ - Logs errors cleanly.
+ - Generates thumbnails and stores only references.
 5.	Search result logic:
-•	Feedback UI fully embedded.
-•	Links function properly to full-size files.
+ - Feedback UI fully embedded.
+ - Links function properly to full-size files.
 
 ## Specific Scripts and Directories (Under the DoFISaC/ Directory): 
 6. face-indexer.py – Embeds faces and scenes, generates thumbnails, builds index `python face-indexer.py "/path/to/my/photo/folder"`
