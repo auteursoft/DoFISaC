@@ -37,14 +37,14 @@ I would not rick roll you with an image of a rick roll. Ergo, this is called a r
  - Links function properly to full-size files.
 
 ## Specific Scripts and Directories (Under the DoFISaC/ Directory): 
-6. face-indexer.py – Embeds faces and scenes, generates thumbnails, builds index `python face-indexer.py "/path/to/my/photo/folder"`
-7. clustering.py – Combines vectors, clusters using DBSCAN based on data scale
-8. retrain.py – Placeholder for retraining logic
-9. cronjob.txt – Example for scheduled retraining
-10. templates/ – Basic HTML for search, results, cluster feedback
-11. static/ – Logo and stylesheet
-12. README.md – Basic setup instructions
-13. `retry-errors.py` will scan the error log and add previously errored files to an existing face-search pkl file. Clustering will need to be redone entirely if the clusters have already been generated. 
+1. face-indexer.py – Embeds faces and scenes, generates thumbnails, builds index `python face-indexer.py "/path/to/my/photo/folder"`
+2. clustering.py – Combines vectors, clusters using DBSCAN based on data scale
+3. retrain.py – Placeholder for retraining logic
+4. cronjob.txt – Example for scheduled retraining
+5. templates/ – Basic HTML for search, results, cluster feedback
+6. static/ – Logo and stylesheet
+7. README.md – Basic setup instructions
+8. `retry-errors.py` will scan the error log and add previously errored files to an existing face-search pkl file. Clustering will need to be redone entirely if the clusters have already been generated. 
 
 
 ## Installation:
