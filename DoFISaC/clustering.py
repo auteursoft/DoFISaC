@@ -1,15 +1,14 @@
-
 import pickle
 import numpy as np
 from sklearn.cluster import DBSCAN
 from pathlib import Path
 import os
-import shutil
-import multiprocessing
 import json
 
-CLUSTER_OUTPUT_DIR = "static/clusters"
+CLUSTER_OUTPUT_JSON_PHASH = "phash_clusters.json"
+CLUSTER_OUTPUT_JSON_BG = "bg_clusters.json"
 PKL_PATH = "face_index.pkl"
+THUMBNAIL_DIR = "static/thumbnails"
 
 def load_vectors():
     with open(PKL_PATH, "rb") as f:
@@ -24,60 +23,26 @@ def load_vectors():
             valid_entries.append(entry)
     return np.array(vectors).astype("float32"), valid_entries
 
-def save_cluster(label_entry):
-    label, entry = label_entry
-    cluster_name = f"cluster_{label}" if label >= 0 else "noise"
-    cluster_path = Path(CLUSTER_OUTPUT_DIR) / cluster_name
-    cluster_path.mkdir(parents=True, exist_ok=True)
-    dest = cluster_path / Path(entry["path"]).name
-    try:
-        shutil.copy(entry["path"], dest)
-    except Exception as e:
-        print(f"Failed to copy {entry['path']}: {e}")
-
 def main():
-    if os.path.exists(CLUSTER_OUTPUT_DIR):
-        shutil.rmtree(CLUSTER_OUTPUT_DIR)
-    os.makedirs(CLUSTER_OUTPUT_DIR, exist_ok=True)
-
-    print("🔍 Loading face and background vectors...")
+    print("🔍 Loading vectors...")
     vectors, valid_entries = load_vectors()
 
     print(f"🤖 Clustering {len(vectors)} images...")
     clustering = DBSCAN(eps=30, min_samples=3, metric='euclidean').fit(vectors)
     labels = clustering.labels_
 
-    print("💾 Saving clustered images...")
-    with multiprocessing.Pool() as pool:
-        pool.map(save_cluster, zip(labels, valid_entries))
-
-    print("✅ Clustering complete.")
-
-    # Save clusters to folders
-    output_dir = Path(CLUSTER_OUTPUT_DIR)
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-    output_dir.mkdir(parents=True)
-
     cluster_map = {}
-
     for label, entry in zip(labels, valid_entries):
         cluster_name = f"cluster_{label}" if label >= 0 else "noise"
-        cluster_path = output_dir / cluster_name
-        cluster_path.mkdir(parents=True, exist_ok=True)
+        cluster_map.setdefault(cluster_name, []).append({
+            "thumb": entry["thumb_name"],
+            "path": entry["path"]
+        })
 
-        dest = cluster_path / Path(entry["path"]).name
-        try:
-            shutil.copy(entry["path"], dest)
-            cluster_map.setdefault(cluster_name, []).append(str(dest))
-        except Exception as e:
-            print(f"Failed to copy {entry['path']}: {e}")
-
-    # Save clusters as JSON for Flask routes
-    with open("phash_clusters.json", "w") as f:
+    with open(CLUSTER_OUTPUT_JSON_PHASH, "w") as f:
         json.dump(cluster_map, f, indent=2)
 
-    with open("bg_clusters.json", "w") as f:
+    with open(CLUSTER_OUTPUT_JSON_BG, "w") as f:
         json.dump(cluster_map, f, indent=2)
 
     print("✅ Clustering complete and metadata saved.")

@@ -1,85 +1,29 @@
-""<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Perceptual Hash Clusters</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <title>Background Clusters</title>
   <style>
-    .thumbnail {
-      max-width: 160px;
-      margin: 0.5rem;
-      border: 1px solid #ccc;
-    }
-    .cluster-group {
-      margin-bottom: 2rem;
-    }
-    .bg-sim {
-      font-size: 0.8rem;
-      color: #666;
-    }
+    img { border: 1px solid #ccc; margin: 4px; }
+    .cluster { margin-bottom: 40px; }
   </style>
 </head>
 <body>
-  <section class="section">
-    <div class="container">
-      <h1 class="title has-text-centered">Perceptual Hash Clusters</h1>
-
-      <div class="field is-grouped is-grouped-multiline">
-        <div class="control">
-          <div class="select">
-            <select id="clusterFilter" onchange="filterClusters()">
-              <option value="all">All Clusters</option>
-              {% for cluster in clusters %}
-                <option value="cluster_{{ loop.index0 }}">Cluster {{ loop.index0 }}</option>
-              {% endfor %}
-            </select>
+  <h1>Background Clusters</h1>
+  <a href="{{ url_for('index') }}">Back to Home</a>
+  {% for cluster_name, images in clusters.items() %}
+    <div class="cluster">
+      <h2>{{ cluster_name }}</h2>
+      <div style="display: flex; flex-wrap: wrap;">
+        {% for img in images %}
+          <div style="margin: 5px; text-align: center;">
+            <a href="file://{{ img.path }}" target="_blank">
+              <img src="{{ url_for('static', filename='thumbnails/' + img.thumb) }}" width="160">
+            </a>
+            <p style="font-size: small;">{{ img.path }}</p>
           </div>
-        </div>
-        <div class="control">
-          <button class="button is-link" onclick="toggleBgSim()">Toggle Background Similarity</button>
-        </div>
+        {% endfor %}
       </div>
-
-      {% for cluster in clusters %}
-      <div class="cluster-group" data-cluster-id="cluster_{{ loop.index0 }}">
-        <h2 class="subtitle">Cluster {{ loop.index0 }}</h2>
-        <div class="is-flex is-flex-wrap-wrap">
-          {% for item in cluster %}
-            <div>
-              <a href="{{ item.path }}" target="_blank">
-                <img src="{{ item.thumb }}" class="thumbnail" loading="lazy">
-              </a>
-              {% if item.bg_sim is defined %}
-              <div class="bg-sim" style="display: none;">
-                BG Sim: {{ item.bg_sim | round(2) }}
-              </div>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endfor %}
-
     </div>
-  </section>
-
-  <script>
-    function filterClusters() {
-      const selected = document.getElementById('clusterFilter').value;
-      document.querySelectorAll('.cluster-group').forEach(el => {
-        if (selected === 'all' || el.dataset.clusterId === selected) {
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
-        }
-      });
-    }
-
-    function toggleBgSim() {
-      document.querySelectorAll('.bg-sim').forEach(el => {
-        el.style.display = (el.style.display === 'none') ? 'block' : 'none';
-      });
-    }
-  </script>
+  {% endfor %}
 </body>
-</html>""
+</html>

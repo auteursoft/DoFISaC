@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Facial Search</title>
+  <title>Facial Search Home</title>
 </head>
 <body>
-    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
-    <h1>Welcome to Facial Search</h1>
-    <ul>
-        <li><a href="{{ url_for('search') }}">Search Faces</a></li>
-        <li><a href="{{ url_for('clusters_phash') }}">Phash Clusters</a></li>
-        <li><a href="{{ url_for('clusters_bg') }}">Background Clusters</a></li>
-        <li><a href="{{ url_for('retrain') }}">Admin Retrain</a></li>
-    </ul>
+  <h1>Welcome to Facial Search</h1>
+  <img src="{{ url_for('static', filename='logo.png') }}" width="200"><br><br>
+  <ul>
+    <li><a href="{{ url_for('search') }}">Search by Image</a></li>
+    <li><a href="{{ url_for('clusters_phash') }}">Perceptual Hash Clusters</a></li>
+    <li><a href="{{ url_for('clusters_bg') }}">Background Clusters</a></li>
+    <li><a href="{{ url_for('retrain') }}">Admin Retrain</a></li>
+  </ul>
 </body>
 </html>
