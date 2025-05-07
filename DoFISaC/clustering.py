@@ -53,19 +53,34 @@ def main():
 
     print("✅ Clustering complete.")
 
+    # Save clusters to folders
+    output_dir = Path(CLUSTER_OUTPUT_DIR)
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True)
+
     cluster_map = {}
 
     for label, entry in zip(labels, valid_entries):
         cluster_name = f"cluster_{label}" if label >= 0 else "noise"
-        if cluster_name not in cluster_map:
-            cluster_map[cluster_name] = []
-        cluster_map[cluster_name].append(str(output_dir / cluster_name / Path(entry["path"]).name))
+        cluster_path = output_dir / cluster_name
+        cluster_path.mkdir(parents=True, exist_ok=True)
 
+        dest = cluster_path / Path(entry["path"]).name
+        try:
+            shutil.copy(entry["path"], dest)
+            cluster_map.setdefault(cluster_name, []).append(str(dest))
+        except Exception as e:
+            print(f"Failed to copy {entry['path']}: {e}")
+
+    # Save clusters as JSON for Flask routes
     with open("phash_clusters.json", "w") as f:
         json.dump(cluster_map, f, indent=2)
 
     with open("bg_clusters.json", "w") as f:
         json.dump(cluster_map, f, indent=2)
+
+    print("✅ Clustering complete and metadata saved.")
 
 if __name__ == "__main__":
     main()
