@@ -4,8 +4,6 @@ This version avoids thumbnail collision and handles special characters.
 
 I would not rick roll you with an image of a rick roll. Ergo, this is called a reverse rick roll, or in some quarters a double secret rick roll. 
 
-[![Watch the video](https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg)](https://www.youtube.com/watch?v=raRGnueg8Lo)
-
 ## Features
 1. ✅ InsightFace + CLIP
 2. ✅ FAISS search
@@ -62,9 +60,9 @@ pip install -r requirements.txt
 source .venv/bin/activate
 ```
 
-
 ## Saving updated requirements without versioning (i.e., if you have an updated PR to submit or something similar):
 1. Unix/OSX: `pip freeze | cut -d '=' -f 1 > requirements.txt`
 2. Windows Powershell `pip freeze | ForEach-Object { ($_ -split '==')[0] } > requirements.txt`
 3. Full toxic pythonity: `python -m pip list --format=freeze | cut -d '=' -f 1 > requirements.txt`
 
+[![Watch the video](https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg)](https://www.youtube.com/watch?v=raRGnueg8Lo)
