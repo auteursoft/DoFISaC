@@ -1,48 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Search Results</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Search</title>
 </head>
 <body>
-    <div class="container">
-        <img src="/static/logo.png" alt="Logo" class="logo">
-        <h1>Search Results for {{ filename }}</h1>
-        <a href="/">Back to Home</a>
-
-        {% for result in results %}
-            <div class="result">
-                <img src="/static/thumbnails/{{ result.thumb }}" alt="thumbnail">
-                <p><a href="file://{{ result.path }}" target="_blank">{{ result.path }}</a></p>
-                <p>Match: {{ result.match or 'unknown' }}</p>
-                <p>Distance: {{ result.distance if result.distance is not none else 'n/a' }}</p>
-                <form method="post" action="/feedback">
-                    <input type="hidden" name="path" value="{{ result.path }}">
-                    <input type="hidden" name="thumb" value="{{ result.thumb }}">
-                    <label>Correct match?
-                        <select name="feedback">
-                            <option value="">--Select--</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                        </select>
-                    </label>
-                    <button type="submit">Submit Feedback</button>
-                </form>
-            </div>
-        {% endfor %}
-
-        {% if page_count > 1 %}
-            <div class="pagination">
-                {% for page_num in range(1, page_count + 1) %}
-                    {% if page_num == current_page %}
-                        <strong>{{ page_num }}</strong>
-                    {% else %}
-                        <a href="?page={{ page_num }}">{{ page_num }}</a>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        {% endif %}
-    </div>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
+    <h2>Upload an image to search</h2>
+    <form method='post' enctype='multipart/form-data'>
+        <input type='file' name='file' accept='image/*' required>
+        <input type='submit' value='Search'>
+    </form>
 </body>
 </html>

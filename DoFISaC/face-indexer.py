@@ -12,7 +12,6 @@ THUMBNAIL_DIR = "static/thumbnails"
 OUTPUT_PKL = "face_index.pkl"
 ERROR_LOG = "index.err"
 
-# Helper for generating consistent hash-based thumbnail names
 def hash_filename(path):
     return hashlib.md5(path.encode()).hexdigest() + os.path.splitext(path)[1]
 
@@ -48,10 +47,7 @@ def process_image(filepath):
             "path": filepath,
             "thumb_name": thumb_name,
             "face_vec": face_vec,
-            "bg_vec": bg_vec,
-            "match": None,
-            "distance": None,
-            "feedback": None
+            "bg_vec": bg_vec
         }
 
     except Exception as e:
