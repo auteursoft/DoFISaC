@@ -11,23 +11,37 @@
             });
         }
     </script>
+    <style>
+        img.thumbnail {
+            height: 100px;
+            margin: 5px;
+        }
+        .cluster-group {
+            margin-bottom: 2em;
+        }
+    </style>
 </head>
 <body>
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
-    <h1>Clusters with 1–6 scale voting</h1>
+    <h1>Phash Clusters</h1>
     {% for cluster_name, images in clusters.items() %}
-        <h3>{{ cluster_name }}</h3>
-        {% for img in images %}
-            <div>
-                <img src="{{ img }}" style="height: 100px;"><br>
-                <small>{{ img }}</small><br>
-                <select onchange="vote('{{ img }}', this.value, 'cluster_phash')">
-                    <option disabled selected>Rate</option>
-                    <option>1</option><option>2</option><option>3</option>
-                    <option>4</option><option>5</option><option>6</option>
-                </select>
-            </div>
-        {% endfor %}
+        <div class="cluster-group">
+            <h3>{{ cluster_name }}</h3>
+            {% for item in images %}
+                <div style="display: inline-block; text-align: center; margin: 10px;">
+                    <a href="file://{{ item.path }}" target="_blank">
+                        <img src="{{ url_for('static', filename='thumbnails/' ~ item.thumb) }}" class="thumbnail" loading="lazy">
+                    </a><br>
+                    <small>{{ item.path }}</small><br>
+                    <select onchange="vote('{{ item.path }}', this.value, 'cluster_phash')">
+                        <option disabled selected>Rate</option>
+                        {% for i in range(1, 7) %}
+                            <option>{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endfor %}
+        </div>
         <hr>
     {% endfor %}
 </body>

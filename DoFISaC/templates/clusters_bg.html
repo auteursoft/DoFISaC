@@ -1,85 +1,48 @@
-""<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Perceptual Hash Clusters</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <style>
-    .thumbnail {
-      max-width: 160px;
-      margin: 0.5rem;
-      border: 1px solid #ccc;
-    }
-    .cluster-group {
-      margin-bottom: 2rem;
-    }
-    .bg-sim {
-      font-size: 0.8rem;
-      color: #666;
-    }
-  </style>
+    <title>Background Clusters</title>
+    <script>
+        function vote(image, label, context) {
+            fetch('/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: image, label: label, context: context })
+            });
+        }
+    </script>
+    <style>
+        img.thumbnail {
+            height: 100px;
+            margin: 5px;
+        }
+        .cluster-group {
+            margin-bottom: 2em;
+        }
+    </style>
 </head>
 <body>
-  <section class="section">
-    <div class="container">
-      <h1 class="title has-text-centered">Perceptual Hash Clusters</h1>
-
-      <div class="field is-grouped is-grouped-multiline">
-        <div class="control">
-          <div class="select">
-            <select id="clusterFilter" onchange="filterClusters()">
-              <option value="all">All Clusters</option>
-              {% for cluster in clusters %}
-                <option value="cluster_{{ loop.index0 }}">Cluster {{ loop.index0 }}</option>
-              {% endfor %}
-            </select>
-          </div>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 80px;">
+    <h1>Background Clusters</h1>
+    {% for cluster_name, images in clusters.items() %}
+        <div class="cluster-group">
+            <h3>{{ cluster_name }}</h3>
+            {% for item in images %}
+                <div style="display: inline-block; text-align: center; margin: 10px;">
+                    <a href="file://{{ item.path }}" target="_blank">
+                        <img src="{{ url_for('static', filename='thumbnails/' ~ item.thumb) }}" class="thumbnail" loading="lazy">
+                    </a><br>
+                    <small>{{ item.path }}</small><br>
+                    <select onchange="vote('{{ item.path }}', this.value, 'cluster_bg')">
+                        <option disabled selected>Rate</option>
+                        {% for i in range(1, 7) %}
+                            <option>{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endfor %}
         </div>
-        <div class="control">
-          <button class="button is-link" onclick="toggleBgSim()">Toggle Background Similarity</button>
-        </div>
-      </div>
-
-      {% for cluster in clusters %}
-      <div class="cluster-group" data-cluster-id="cluster_{{ loop.index0 }}">
-        <h2 class="subtitle">Cluster {{ loop.index0 }}</h2>
-        <div class="is-flex is-flex-wrap-wrap">
-          {% for item in cluster %}
-            <div>
-              <a href="{{ item.path }}" target="_blank">
-                <img src="{{ item.thumb }}" class="thumbnail" loading="lazy">
-              </a>
-              {% if item.bg_sim is defined %}
-              <div class="bg-sim" style="display: none;">
-                BG Sim: {{ item.bg_sim | round(2) }}
-              </div>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endfor %}
-
-    </div>
-  </section>
-
-  <script>
-    function filterClusters() {
-      const selected = document.getElementById('clusterFilter').value;
-      document.querySelectorAll('.cluster-group').forEach(el => {
-        if (selected === 'all' || el.dataset.clusterId === selected) {
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
-        }
-      });
-    }
-
-    function toggleBgSim() {
-      document.querySelectorAll('.bg-sim').forEach(el => {
-        el.style.display = (el.style.display === 'none') ? 'block' : 'none';
-      });
-    }
-  </script>
+        <hr>
+    {% endfor %}
 </body>
-</html>""
+</html>

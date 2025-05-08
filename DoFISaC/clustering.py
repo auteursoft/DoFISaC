@@ -33,7 +33,8 @@ def build_cluster_json(labels, entries):
         cluster = f"cluster_{label}" if label >= 0 else "noise"
         cluster_map.setdefault(cluster, []).append({
             "thumb": entry["thumb_name"],
-            "path": entry["path"]
+            #"path": entry["path"]
+            "path": str(Path(entry["path"]))  # ensures proper platform path formatting
         })
     return cluster_map
 
