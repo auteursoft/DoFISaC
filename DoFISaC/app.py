@@ -1,8 +1,6 @@
-# app.py (patched for correct search result logic)
+# app.py (regenerated and corrected)
 from flask import Flask, render_template, request, jsonify, url_for
-import os
-import json
-import pickle
+import os, json, pickle
 from pathlib import Path
 import numpy as np
 from insightface.app import FaceAnalysis
@@ -16,8 +14,11 @@ THUMBNAIL_DIR = "static/thumbnails"
 INDEX_PATH = "face_index.pkl"
 FEEDBACK_PATH = "static/feedback.json"
 CLUSTER_FEEDBACK_PATH = "static/cluster_feedback.json"
+PHASH_CLUSTER_PATH = "phash_clusters.json"
+BG_CLUSTER_PATH = "bg_clusters.json"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(THUMBNAIL_DIR, exist_ok=True)
 
 face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
 face_model.prepare(ctx_id=0)
@@ -27,89 +28,69 @@ clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 with open(INDEX_PATH, "rb") as f:
     face_db = pickle.load(f)
 
-face_vectors = np.array([e["face_vec"] for e in face_db if e["face_vec"] is not None]).astype("float32")
-bg_vectors = np.array([e["bg_vec"] for e in face_db if e["bg_vec"] is not None]).astype("float32")
+face_vectors = np.array([e["face_vec"] for e in face_db if e["face_vec"] is not None], dtype="float32")
+bg_vectors = np.array([e["bg_vec"] for e in face_db if e["bg_vec"] is not None], dtype="float32")
 face_index = faiss.IndexFlatL2(face_vectors.shape[1])
 bg_index = faiss.IndexFlatL2(bg_vectors.shape[1])
 face_index.add(face_vectors)
 bg_index.add(bg_vectors)
 
-
-def extract_face_embedding(image_np):
-    faces = face_model.get(image_np)
-    return faces[0].embedding if faces else None
-
-
-def extract_clip_embedding(image):
-    inputs = clip_processor(images=image, return_tensors="pt", padding=True)
-    return clip_model.get_image_features(**inputs)[0].detach().numpy()
-
-
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
 @app.route("/search", methods=["GET", "POST"])
 def search():
-    page = int(request.args.get("page", 1))
-    per_page = 20
-    results = []
-    query = None
-
     if request.method == "POST":
         f = request.files["file"]
-        query = f.filename
         save_path = os.path.join(UPLOAD_FOLDER, f.filename)
         f.save(save_path)
-
         img = Image.open(save_path).convert("RGB")
         img_np = np.array(img)
-        face_vec = extract_face_embedding(img_np)
-        bg_vec = extract_clip_embedding(img)
+        face_vec = face_model.get(img_np)[0].embedding if face_model.get(img_np) else None
+        inputs = clip_processor(images=img, return_tensors="pt", padding=True)
+        bg_vec = clip_model.get_image_features(**inputs)[0].detach().numpy()
 
-        seen = set()
-        combined_results = []
-
+        results = []
         if face_vec is not None:
-            dists, idxs = face_index.search(np.array([face_vec]), 100)
-            for d, i in zip(dists[0], idxs[0]):
-                entry = face_db[i]
-                if entry["path"] not in seen:
-                    entry.update({"match": "face", "distance": float(d)})
-                    combined_results.append(entry)
-                    seen.add(entry["path"])
-
+            dists, idxs = face_index.search(np.array([face_vec], dtype="float32"), 50)
+            for dist, idx in zip(dists[0], idxs[0]):
+                results.append((face_db[idx], dist))
         if bg_vec is not None:
-            dists, idxs = bg_index.search(np.array([bg_vec]), 100)
-            for d, i in zip(dists[0], idxs[0]):
-                entry = face_db[i]
-                if entry["path"] not in seen:
-                    entry.update({"match": "background", "distance": float(d)})
-                    combined_results.append(entry)
-                    seen.add(entry["path"])
+            dists, idxs = bg_index.search(np.array([bg_vec], dtype="float32"), 50)
+            for dist, idx in zip(dists[0], idxs[0]):
+                results.append((face_db[idx], dist))
 
-        results = combined_results
+        # Deduplicate and annotate
+        seen, unique = set(), []
+        for entry, dist in results:
+            if entry["path"] not in seen:
+                seen.add(entry["path"])
+                entry["match"] = "yes"
+                entry["distance"] = f"{dist:.4f}"
+                unique.append(entry)
 
-    total = len(results)
-    page_count = (total + per_page - 1) // per_page
-    paginated_results = results[(page - 1) * per_page : page * per_page]
+        page_count = 1  # for template compat
+        return render_template("search_results.html", results=unique, query=f.filename, page_count=page_count)
 
-    return render_template(
-        "search.html",
-        results=paginated_results,
-        query=query,
-        page=page,
-        page_count=page_count,
-    )
+    return render_template("search.html", page_count=1)
 
+@app.route("/clusters/phash")
+def clusters_phash():
+    with open(PHASH_CLUSTER_PATH) as f:
+        clusters = json.load(f)
+    return render_template("clusters_phash.html", clusters=clusters)
+
+@app.route("/clusters/bg")
+def clusters_bg():
+    with open(BG_CLUSTER_PATH) as f:
+        clusters = json.load(f)
+    return render_template("clusters_bg.html", clusters=clusters)
 
 @app.route("/feedback", methods=["POST"])
 def feedback():
     data = request.get_json()
-    path = data["image"]
-    label = data["label"]
-    context = data["context"]
+    path, label, context = data["image"], data["label"], data["context"]
     feedback_path = FEEDBACK_PATH if context == "face_search" else CLUSTER_FEEDBACK_PATH
     feedback = {}
     if os.path.exists(feedback_path):
@@ -119,3 +100,6 @@ def feedback():
     with open(feedback_path, "w") as f:
         json.dump(feedback, f, indent=2)
     return jsonify(status="ok")
+
+if __name__ == "__main__":
+    app.run(debug=True)
