@@ -8,25 +8,25 @@ import hashlib
 import multiprocessing
 from tqdm import tqdm
 
+from insightface.app import FaceAnalysis
+from transformers import CLIPProcessor, CLIPModel
+import torch
+
 THUMBNAIL_DIR = "static/thumbnails"
 OUTPUT_PKL = "face_index.pkl"
 ERROR_LOG = "index.err"
+
+face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
+face_model.prepare(ctx_id=0)
+
+clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 def hash_filename(path):
     return hashlib.md5(path.encode()).hexdigest() + os.path.splitext(path)[1]
 
 def process_image(filepath):
     try:
-        from insightface.app import FaceAnalysis
-        from transformers import CLIPProcessor, CLIPModel
-        import torch
-
-        face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
-        face_model.prepare(ctx_id=0)
-
-        clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-        clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-
         img = Image.open(filepath).convert("RGB")
         img_np = np.array(img)
 
