@@ -1,61 +1,65 @@
+# app.py (patched for correct search result logic)
 from flask import Flask, render_template, request, jsonify, url_for
 import os
 import json
 import pickle
-import numpy as np
-from PIL import Image
 from pathlib import Path
-from transformers import CLIPProcessor, CLIPModel
+import numpy as np
 from insightface.app import FaceAnalysis
+from transformers import CLIPProcessor, CLIPModel
+from PIL import Image
 import faiss
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
 THUMBNAIL_DIR = "static/thumbnails"
 INDEX_PATH = "face_index.pkl"
 FEEDBACK_PATH = "static/feedback.json"
 CLUSTER_FEEDBACK_PATH = "static/cluster_feedback.json"
-PHASH_CLUSTER_PATH = "phash_clusters.json"
-BG_CLUSTER_PATH = "bg_clusters.json"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Load models
 face_model = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
 face_model.prepare(ctx_id=0)
 clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# Load face index
 with open(INDEX_PATH, "rb") as f:
     face_db = pickle.load(f)
 
-face_vectors = np.array([entry["face_vec"] for entry in face_db if entry["face_vec"] is not None]).astype("float32")
-bg_vectors = np.array([entry["bg_vec"] for entry in face_db if entry["bg_vec"] is not None]).astype("float32")
-
+face_vectors = np.array([e["face_vec"] for e in face_db if e["face_vec"] is not None]).astype("float32")
+bg_vectors = np.array([e["bg_vec"] for e in face_db if e["bg_vec"] is not None]).astype("float32")
 face_index = faiss.IndexFlatL2(face_vectors.shape[1])
 bg_index = faiss.IndexFlatL2(bg_vectors.shape[1])
 face_index.add(face_vectors)
 bg_index.add(bg_vectors)
 
-# Embedding helpers
+
 def extract_face_embedding(image_np):
     faces = face_model.get(image_np)
     return faces[0].embedding if faces else None
+
 
 def extract_clip_embedding(image):
     inputs = clip_processor(images=image, return_tensors="pt", padding=True)
     return clip_model.get_image_features(**inputs)[0].detach().numpy()
 
-# Routes
+
 @app.route("/")
 def index():
     return render_template("index.html")
 
+
 @app.route("/search", methods=["GET", "POST"])
 def search():
+    page = int(request.args.get("page", 1))
+    per_page = 20
+    results = []
+    query = None
+
     if request.method == "POST":
         f = request.files["file"]
+        query = f.filename
         save_path = os.path.join(UPLOAD_FOLDER, f.filename)
         f.save(save_path)
 
@@ -64,61 +68,41 @@ def search():
         face_vec = extract_face_embedding(img_np)
         bg_vec = extract_clip_embedding(img)
 
-        results = []
-        if face_vec is not None:
-            dists, idxs = face_index.search(np.array([face_vec]).astype("float32"), 50)
-            for i, dist in zip(idxs[0], dists[0]):
-                results.append({
-                    **face_db[i],
-                    "match": "face",
-                    "distance": float(dist)
-                })
-        if bg_vec is not None:
-            dists, idxs = bg_index.search(np.array([bg_vec]).astype("float32"), 50)
-            for i, dist in zip(idxs[0], dists[0]):
-                results.append({
-                    **face_db[i],
-                    "match": "background",
-                    "distance": float(dist)
-                })
-
         seen = set()
-        unique = []
-        for r in results:
-            key = r["path"]
-            if key not in seen:
-                unique.append(r)
-                seen.add(key)
+        combined_results = []
 
-        page_size = 20
-        page = int(request.args.get("page", 1))
-        start = (page - 1) * page_size
-        end = start + page_size
-        paginated_results = unique[start:end]
-        page_count = (len(unique) + page_size - 1) // page_size
+        if face_vec is not None:
+            dists, idxs = face_index.search(np.array([face_vec]), 100)
+            for d, i in zip(dists[0], idxs[0]):
+                entry = face_db[i]
+                if entry["path"] not in seen:
+                    entry.update({"match": "face", "distance": float(d)})
+                    combined_results.append(entry)
+                    seen.add(entry["path"])
 
-        return render_template(
-            "search.html",
-            results=paginated_results,
-            query=f.filename,
-            page=page,
-            page_count=page_count
-        )
+        if bg_vec is not None:
+            dists, idxs = bg_index.search(np.array([bg_vec]), 100)
+            for d, i in zip(dists[0], idxs[0]):
+                entry = face_db[i]
+                if entry["path"] not in seen:
+                    entry.update({"match": "background", "distance": float(d)})
+                    combined_results.append(entry)
+                    seen.add(entry["path"])
 
-    # Return an empty page on GET
-    return render_template("search.html", results=[], query=None, page=1, page_count=0)
+        results = combined_results
 
-@app.route("/clusters/phash")
-def clusters_phash():
-    with open(PHASH_CLUSTER_PATH, "r") as f:
-        clusters = json.load(f)
-    return render_template("clusters_phash.html", clusters=clusters)
+    total = len(results)
+    page_count = (total + per_page - 1) // per_page
+    paginated_results = results[(page - 1) * per_page : page * per_page]
 
-@app.route("/clusters/bg")
-def clusters_bg():
-    with open(BG_CLUSTER_PATH, "r") as f:
-        clusters = json.load(f)
-    return render_template("clusters_bg.html", clusters=clusters)
+    return render_template(
+        "search.html",
+        results=paginated_results,
+        query=query,
+        page=page,
+        page_count=page_count,
+    )
+
 
 @app.route("/feedback", methods=["POST"])
 def feedback():
@@ -135,10 +119,3 @@ def feedback():
     with open(feedback_path, "w") as f:
         json.dump(feedback, f, indent=2)
     return jsonify(status="ok")
-
-@app.route("/retrain", methods=["GET"])
-def retrain():
-    return render_template("retrain.html")
-
-if __name__ == "__main__":
-    app.run(debug=True)
