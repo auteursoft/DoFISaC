@@ -18,7 +18,6 @@
             <p>
                 <a href="file://{{ result.path }}" target="_blank">{{ result.path }}</a><br>
                 Match: {{ result.match_type if result.match_type else "unknown" }}<br>             
-                <!--Distance: {{ '%.2f' % result.distance if result.distance else "n/a" }} -->
                 {% if result.distance is number %}
                     Distance: {{ '%.2f' % result.distance }}
                 {% else %}
