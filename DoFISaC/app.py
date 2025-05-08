@@ -55,22 +55,58 @@ def index():
 @app.route("/search", methods=["GET", "POST"])
 def search():
     if request.method == "POST":
-        # ... your existing code ...
+        f = request.files["file"]
+        save_path = os.path.join(UPLOAD_FOLDER, f.filename)
+        f.save(save_path)
+
+        img = Image.open(save_path).convert("RGB")
+        img_np = np.array(img)
+        face_vec = extract_face_embedding(img_np)
+        bg_vec = extract_clip_embedding(img)
+
+        results = []
+        if face_vec is not None:
+            dists, idxs = face_index.search(np.array([face_vec]).astype("float32"), 50)
+            for i, dist in zip(idxs[0], dists[0]):
+                results.append({
+                    **face_db[i],
+                    "match": "face",
+                    "distance": float(dist)
+                })
+        if bg_vec is not None:
+            dists, idxs = bg_index.search(np.array([bg_vec]).astype("float32"), 50)
+            for i, dist in zip(idxs[0], dists[0]):
+                results.append({
+                    **face_db[i],
+                    "match": "background",
+                    "distance": float(dist)
+                })
+
+        seen = set()
+        unique = []
+        for r in results:
+            key = r["path"]
+            if key not in seen:
+                unique.append(r)
+                seen.add(key)
+
         page_size = 20
         page = int(request.args.get("page", 1))
         start = (page - 1) * page_size
         end = start + page_size
         paginated_results = unique[start:end]
         page_count = (len(unique) + page_size - 1) // page_size
+
         return render_template(
             "search.html",
             results=paginated_results,
             query=f.filename,
             page=page,
-            page_count=page_count,
+            page_count=page_count
         )
-    # ✅ This line ensures `page_count` is defined even for GET
-    return render_template("search.html", results=[], page=1, page_count=0)
+
+    # Return an empty page on GET
+    return render_template("search.html", results=[], query=None, page=1, page_count=0)
 
 @app.route("/clusters/phash")
 def clusters_phash():
