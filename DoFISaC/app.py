@@ -101,5 +101,9 @@ def feedback():
         json.dump(feedback, f, indent=2)
     return jsonify(status="ok")
 
+@app.route("/retrain")
+def retrain():
+    return "Retraining not implemented yet.", 501
+
 if __name__ == "__main__":
     app.run(debug=True)
