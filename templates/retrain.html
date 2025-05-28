@@ -1,0 +1,9 @@
+<h1>Admin Retrain</h1>
+<form method="POST">
+  <label>Token:</label>
+  <input type="password" name="token" />
+  <input type="submit" value="Trigger Retrain" />
+</form>
+{% if status %}
+  <p>{{ status }}</p>
+{% endif %}

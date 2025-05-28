@@ -1,0 +1,17 @@
+<h1>Search Results</h1>
+<p>Query Image: {{ query }}</p>
+{% if results %}
+<ul>
+  {% for result in results %}
+    <li>
+      <a href="file://{{ result.full_path }}" target="_blank">
+        <img src="{{ url_for('static', filename='thumbnails/' ~ result.thumb_name) }}" height="100">
+      </a>
+      {{ result.full_path }}
+    </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No matches found.</p>
+{% endif %}
+<a href="/search">Try another</a>
