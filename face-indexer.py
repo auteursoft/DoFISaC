@@ -1,3 +1,4 @@
+import hashlib
 import os
 import pickle
 import numpy as np
@@ -7,7 +8,8 @@ from pathlib import Path
 from insightface.app import FaceAnalysis
 from transformers import CLIPProcessor, CLIPModel
 
-PHOTO_DIR = "photos"
+PHOTO_DIR = "/Users/sean/Dropbox"
+#PHOTO_DIR = "photos"
 OUTPUT_PKL = "face_index.pkl"
 THUMBNAIL_DIR = "static/thumbnails"
 
